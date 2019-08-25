@@ -1,0 +1,261 @@
+{
+    "init_movement": {
+        "Scenario": "stationary_flat",
+        "Setpoint": {
+            "Value": 0.5,
+            "Time": "2019-07-10T20:00:21.24528192+02:00"
+        },
+        "Duration": 300000000,
+        "Expected": {
+            "Time": "2019-07-10T20:00:22.545281838+02:00",
+            "Setpoint": {
+                "Value": 0.5,
+                "Time": "2019-07-10T20:00:21.24528192+02:00"
+            },
+            "Position": 0,
+            "Velocity": 0,
+            "Acceleration": 0.5,
+            "TractionForce": 268710,
+            "BrakingForce": 0,
+            "TractionPower": 0,
+            "BrakingPower": 0,
+            "Mass": 507000,
+            "TrackIndex": 0,
+            "TrackID": 1,
+            "RelPosition": 0,
+            "Slope": 0,
+            "BendRadius": 1000000000,
+            "Tunnel": false,
+            "Resistance": 0,
+            "BasicRes": 0,
+            "SlopeRes": 0,
+            "CurveRes": 0,
+            "TunnelRes": 0,
+            "LineRes": 0,
+            "NumPassengers": 0,
+            "Warnings": {
+                "OutOfBounds": null
+            },
+            "Alarms": {
+                "OutOfBounds": null
+            }
+        }
+    },
+    "stationary_ascend": {
+        "Scenario": "stationary_ascend",
+        "Setpoint": {
+            "Value": 0,
+            "Time": "2019-07-10T20:00:21.24528192+02:00"
+        },
+        "Duration": 1000000000,
+        "Expected": {
+            "Time": "2019-07-10T20:00:23.245281838+02:00",
+            "Setpoint": {
+                "Value": 0,
+                "Time": "2019-07-10T20:00:21.24528192+02:00"
+            },
+            "Position": 0,
+            "Velocity": 0,
+            "Acceleration": 0,
+            "TractionForce": 248495.0217064469,
+            "BrakingForce": 0,
+            "TractionPower": 0,
+            "BrakingPower": 0,
+            "Mass": 507000,
+            "TrackIndex": 0,
+            "TrackID": 1,
+            "RelPosition": 0,
+            "Slope": 0.05,
+            "BendRadius": 1000000000,
+            "Tunnel": false,
+            "Resistance": 248495.0217064469,
+            "BasicRes": 0.014,
+            "SlopeRes": 248495.0077064469,
+            "CurveRes": 0,
+            "TunnelRes": 0,
+            "LineRes": 248495.0077064469,
+            "NumPassengers": 0,
+            "Warnings": {
+                "OutOfBounds": null
+            },
+            "Alarms": {
+                "OutOfBounds": null
+            }
+        }
+    },
+    "stationary_brake": {
+        "Scenario": "stationary_flat",
+        "Setpoint": {
+            "Value": -0.5,
+            "Time": "2019-07-10T20:00:21.24528192+02:00"
+        },
+        "Duration": 300000000,
+        "Expected": {
+            "Time": "2019-07-10T20:00:22.545281838+02:00",
+            "Setpoint": {
+                "Value": -0.5,
+                "Time": "2019-07-10T20:00:21.24528192+02:00"
+            },
+            "Position": 0,
+            "Velocity": 0,
+            "Acceleration": 0,
+            "TractionForce": 0,
+            "BrakingForce": 0,
+            "TractionPower": 0,
+            "BrakingPower": 0,
+            "Mass": 507000,
+            "TrackIndex": 0,
+            "TrackID": 1,
+            "RelPosition": 0,
+            "Slope": 0,
+            "BendRadius": 1000000000,
+            "Tunnel": false,
+            "Resistance": 0,
+            "BasicRes": 0,
+            "SlopeRes": 0,
+            "CurveRes": 0,
+            "TunnelRes": 0,
+            "LineRes": 0,
+            "NumPassengers": 0,
+            "Warnings": {
+                "OutOfBounds": null
+            },
+            "Alarms": {
+                "OutOfBounds": null
+            }
+        }
+    },
+    "stationary_brake_descend": {
+        "Scenario": "stationary_descend",
+        "Setpoint": {
+            "Value": -0.5,
+            "Time": "2019-07-10T20:00:21.24528192+02:00"
+        },
+        "Duration": 1000000000,
+        "Expected": {
+            "Time": "2019-07-10T20:00:23.245281838+02:00",
+            "Setpoint": {
+                "Value": -0.5,
+                "Time": "2019-07-10T20:00:21.24528192+02:00"
+            },
+            "Position": 0,
+            "Velocity": 0,
+            "Acceleration": 0,
+            "TractionForce": 0,
+            "BrakingForce": 248494.9937064469,
+            "TractionPower": 0,
+            "BrakingPower": 0,
+            "Mass": 507000,
+            "TrackIndex": 0,
+            "TrackID": 1,
+            "RelPosition": 0,
+            "Slope": -0.05,
+            "BendRadius": 1000000000,
+            "Tunnel": false,
+            "Resistance": -248494.9937064469,
+            "BasicRes": 0.014,
+            "SlopeRes": -248495.0077064469,
+            "CurveRes": 0,
+            "TunnelRes": 0,
+            "LineRes": -248495.0077064469,
+            "NumPassengers": 0,
+            "Warnings": {
+                "OutOfBounds": [
+                    {
+                        "Type": "Acceleration",
+                        "Min": -0.370296986144083,
+                        "Max": 1.0206077066474022,
+                        "Value": -0.5
+                    }
+                ]
+            },
+            "Alarms": {
+                "OutOfBounds": null
+            }
+        }
+    },
+    "stationary_descend": {
+        "Scenario": "stationary_descend",
+        "Setpoint": {
+            "Value": 0,
+            "Time": "2019-07-10T20:00:21.24528192+02:00"
+        },
+        "Duration": 1000000000,
+        "Expected": {
+            "Time": "2019-07-10T20:00:23.245281838+02:00",
+            "Setpoint": {
+                "Value": 0,
+                "Time": "2019-07-10T20:00:21.24528192+02:00"
+            },
+            "Position": 0,
+            "Velocity": 0,
+            "Acceleration": 0,
+            "TractionForce": 0,
+            "BrakingForce": 248494.9937064469,
+            "TractionPower": 0,
+            "BrakingPower": 0,
+            "Mass": 507000,
+            "TrackIndex": 0,
+            "TrackID": 1,
+            "RelPosition": 0,
+            "Slope": -0.05,
+            "BendRadius": 1000000000,
+            "Tunnel": false,
+            "Resistance": -248494.9937064469,
+            "BasicRes": 0.014,
+            "SlopeRes": -248495.0077064469,
+            "CurveRes": 0,
+            "TunnelRes": 0,
+            "LineRes": -248495.0077064469,
+            "NumPassengers": 0,
+            "Warnings": {
+                "OutOfBounds": null
+            },
+            "Alarms": {
+                "OutOfBounds": null
+            }
+        }
+    },
+    "stationary_flat": {
+        "Scenario": "stationary_flat",
+        "Setpoint": {
+            "Value": 0,
+            "Time": "2019-07-10T20:00:21.24528192+02:00"
+        },
+        "Duration": 1000000000,
+        "Expected": {
+            "Time": "2019-07-10T20:00:23.245281838+02:00",
+            "Setpoint": {
+                "Value": 0,
+                "Time": "2019-07-10T20:00:21.24528192+02:00"
+            },
+            "Position": 0,
+            "Velocity": 0,
+            "Acceleration": 0,
+            "TractionForce": 0,
+            "BrakingForce": 0,
+            "TractionPower": 0,
+            "BrakingPower": 0,
+            "Mass": 507000,
+            "TrackIndex": 0,
+            "TrackID": 1,
+            "RelPosition": 0,
+            "Slope": 0,
+            "BendRadius": 1000000000,
+            "Tunnel": false,
+            "Resistance": 0,
+            "BasicRes": 0,
+            "SlopeRes": 0,
+            "CurveRes": 0,
+            "TunnelRes": 0,
+            "LineRes": 0,
+            "NumPassengers": 0,
+            "Warnings": {
+                "OutOfBounds": null
+            },
+            "Alarms": {
+                "OutOfBounds": null
+            }
+        }
+    }
+}

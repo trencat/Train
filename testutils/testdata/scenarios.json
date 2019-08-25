@@ -1,0 +1,249 @@
+{
+    "stationary_flat": {
+        "Train": "SBB Re 460 locomotive",
+        "Track": "default",
+        "Sensors": {
+            "Time": "2019-07-10T20:00:22.245281838+02:00",
+            "Setpoint": {
+                "Value": 0,
+                "Time": "2019-07-10T20:00:22.245281838+02:00"
+            },
+            "Position": 0,
+            "Velocity": 0,
+            "Acceleration": 0,
+            "TractionForce": 0,
+            "BrakingForce": 0,
+            "TractionPower": 0,
+            "BrakingPower": 0,
+            "Mass": 507000,
+            "TrackIndex": 0,
+            "TrackID": 1,
+            "RelPosition": 0,
+            "Slope": 0,
+            "BendRadius": 1000000000,
+            "Tunnel": false,
+            "Resistance": 0,
+            "BasicRes": 0,
+            "SlopeRes": 0,
+            "CurveRes": 0,
+            "TunnelRes": 0,
+            "LineRes": 0,
+            "NumPassengers": 0,
+            "Warnings": {
+                "OutOfBounds": null,
+                "Heartbeat": null
+            },
+            "Alarms": {
+                "OutOfBounds": null,
+                "Heartbeat": null
+            }
+        }
+    },
+    "stationary_ascend": {
+        "Train": "SBB Re 460 locomotive",
+        "Track": "slope_ascend",
+        "Sensors": {
+            "Time": "2019-07-10T20:00:22.245281838+02:00",
+            "Setpoint": {
+                "Value": 0,
+                "Time": "2019-07-10T20:00:22.245281838+02:00"
+            },
+            "Position": 0,
+            "Velocity": 0,
+            "Acceleration": 0,
+            "TractionForce": 248495.0217064469,
+            "BrakingForce": 0,
+            "TractionPower": 0,
+            "BrakingPower": 0,
+            "Mass": 507000,
+            "TrackIndex": 0,
+            "TrackID": 1,
+            "RelPosition": 0,
+            "Slope": 0.05,
+            "BendRadius": 1000000000,
+            "Tunnel": false,
+            "Resistance": 248495.0217064469,
+            "BasicRes": 0.014,
+            "SlopeRes": 248495.0077064469,
+            "CurveRes": 0,
+            "TunnelRes": 0,
+            "LineRes": 248495.0077064469,
+            "NumPassengers": 0,
+            "Warnings": {
+                "OutOfBounds": null,
+                "Heartbeat": null
+            },
+            "Alarms": {
+                "OutOfBounds": null,
+                "Heartbeat": null
+            }
+        }
+    },
+    "stationary_descend": {
+        "Train": "SBB Re 460 locomotive",
+        "Track": "slope_descend",
+        "Sensors": {
+            "Time": "2019-07-10T20:00:22.245281838+02:00",
+            "Setpoint": {
+                "Value": 0,
+                "Time": "2019-07-10T20:00:22.245281838+02:00"
+            },
+            "Position": 0,
+            "Velocity": 0,
+            "Acceleration": 0,
+            "TractionForce": 0,
+            "BrakingForce": 248494.9937064469,
+            "TractionPower": 0,
+            "BrakingPower": 0,
+            "Mass": 507000,
+            "TrackIndex": 0,
+            "TrackID": 1,
+            "RelPosition": 0,
+            "Slope": -0.05,
+            "BendRadius": 1000000000,
+            "Tunnel": false,
+            "Resistance": -248494.9937064469,
+            "BasicRes": 0.014,
+            "SlopeRes": -248495.0077064469,
+            "CurveRes": 0,
+            "TunnelRes": 0,
+            "LineRes": -248495.0077064469,
+            "NumPassengers": 0,
+            "Warnings": {
+                "OutOfBounds": null,
+                "Heartbeat": null
+            },
+            "Alarms": {
+                "OutOfBounds": null,
+                "Heartbeat": null
+            }
+        }
+    },
+    "moving_flat": {
+        "Train": "SBB Re 460 locomotive",
+        "Track": "default",
+        "Sensors": {
+            "Time": "2019-07-10T20:00:22.245281838+02:00",
+            "Setpoint": {
+                "Value": 0.2,
+                "Time": "2019-07-10T20:00:22.245281838+02:00"
+            },
+            "Position": 10,
+            "Velocity": 100,
+            "Acceleration": 0.2,
+            "TractionForce": 107484.27359410017,
+            "BrakingForce": 0,
+            "TractionPower": 10748427.359410018,
+            "BrakingPower": 0,
+            "Mass": 507000,
+            "TrackIndex": 0,
+            "TrackID": 1,
+            "RelPosition": 10,
+            "Slope": 0,
+            "BendRadius": 1000000000,
+            "Tunnel": false,
+            "Resistance": 0.2735941001756755,
+            "BasicRes": 0.2704,
+            "SlopeRes": 0,
+            "CurveRes": 0.00319410017567551,
+            "TunnelRes": 0,
+            "LineRes": 0.00319410017567551,
+            "NumPassengers": 0,
+            "Warnings": {
+                "OutOfBounds": null,
+                "Heartbeat": null
+            },
+            "Alarms": {
+                "OutOfBounds": null,
+                "Heartbeat": null
+            }
+        }
+    },
+    "velocity_limit": {
+        "Train": "SBB Re 460 locomotive",
+        "Track": "flat_low_velocity",
+        "Sensors": {
+            "Time": "2019-07-10T20:00:22.245281838+02:00",
+            "Setpoint": {
+                "Value": 0,
+                "Time": "2019-07-10T20:00:22.245281838+02:00"
+            },
+            "Position": 10,
+            "Velocity": 50,
+            "Acceleration": 0,
+            "TractionForce": 0.0812941001756755,
+            "BrakingForce": 0,
+            "TractionPower": 4.064705008783775,
+            "BrakingPower": 0,
+            "Mass": 507000,
+            "TrackIndex": 0,
+            "TrackID": 1,
+            "RelPosition": 10,
+            "Slope": 0,
+            "BendRadius": 1000000000,
+            "Tunnel": false,
+            "Resistance": 0.0812941001756755,
+            "BasicRes": 0.07809999999999999,
+            "SlopeRes": 0,
+            "CurveRes": 0.00319410017567551,
+            "TunnelRes": 0,
+            "LineRes": 0.00319410017567551,
+            "NumPassengers": 0,
+            "Warnings": {
+                "OutOfBounds": null,
+                "Heartbeat": null
+            },
+            "Alarms": {
+                "OutOfBounds": null,
+                "Heartbeat": null
+            }
+        }
+    },
+    "velocity_limit_alarm": {
+        "Train": "SBB Re 460 locomotive",
+        "Track": "flat_really_low_velocity",
+        "Sensors": {
+            "Time": "2019-07-10T20:00:22.245281838+02:00",
+            "Setpoint": {
+                "Value": 0.5,
+                "Time": "2019-07-10T20:00:22.245281838+02:00"
+            },
+            "Position": 10,
+            "Velocity": 6,
+            "Acceleration": 0,
+            "TractionForce": 0.01811714017567551,
+            "BrakingForce": 0,
+            "TractionPower": 0.10870284105405306,
+            "BrakingPower": 0,
+            "Mass": 507000,
+            "TrackIndex": 0,
+            "TrackID": 1,
+            "RelPosition": 10,
+            "Slope": 0,
+            "BendRadius": 1000000000,
+            "Tunnel": false,
+            "Resistance": 0.01811714017567551,
+            "BasicRes": 0.01492304,
+            "SlopeRes": 0,
+            "CurveRes": 0.00319410017567551,
+            "TunnelRes": 0,
+            "LineRes": 0.00319410017567551,
+            "NumPassengers": 0,
+            "Warnings": {
+                "OutOfBounds": null,
+                "Heartbeat": null
+            },
+            "Alarms": {
+                "OutOfBounds": [
+                    {
+                        "Type": "Velocity",
+                        "Min": 0,
+                        "Max": 5,
+                        "Value": 6
+                    }
+                ],
+                "Heartbeat": null
+            }
+        }
+    }
+}
