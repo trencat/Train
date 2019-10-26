@@ -54,6 +54,8 @@ type cache struct {
 	status         Status
 }
 
+// TODO: Put start, stop and kill in a signals struct
+
 // Atp implements interfaces.ATP.
 type Atp struct {
 	core      *core.Core
@@ -193,6 +195,7 @@ loop:
 			break loop
 		}
 
+		// Listen for signals
 		select {
 		case <-atp.start:
 			if atp.state.get() == On {
@@ -238,6 +241,7 @@ func (atp *Atp) shutdownRoutine() bool {
 	}
 
 	if !Stopped(sensors) {
+		// Attempt to shutdown train while running
 		if atp.state.get() != Alarm {
 			atp.state.set(Alarm)
 			atp.updateCache(atp.state.get(), time.Time{})

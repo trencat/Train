@@ -44,8 +44,8 @@ func newStateMachine(log *syslog.Writer) (stateMachine, error) {
 	}, nil
 }
 
-func (se *stateMachine) canSet(to Status) bool {
-	from := se.status
+func (sm *stateMachine) canSet(to Status) bool {
+	from := sm.status
 
 	return (from == to) ||
 		(from == On && to == Active) ||
@@ -59,29 +59,29 @@ func (se *stateMachine) canSet(to Status) bool {
 		(from == Shutdown && to == Off)
 }
 
-func (se *stateMachine) set(to Status) error {
-	from := se.status
+func (sm *stateMachine) set(to Status) error {
+	from := sm.status
 
 	if from == to {
 		return nil
 	}
 
-	if !se.canSet(to) {
+	if !sm.canSet(to) {
 		err := errors.Errorf("Attempt to set status to %d from status %d.", to, from)
-		se.log.Warning(fmt.Sprintf("%+v", err))
+		sm.log.Warning(fmt.Sprintf("%+v", err))
 		return err
 	}
 
-	se.prevStatus = se.status
-	se.status = to
-	se.log.Info(fmt.Sprintf("Status set to %d", to))
+	sm.prevStatus = sm.status
+	sm.status = to
+	sm.log.Info(fmt.Sprintf("Status set to %d", to))
 	return nil
 }
 
-func (se stateMachine) get() Status {
-	return se.status
+func (sm stateMachine) get() Status {
+	return sm.status
 }
 
-func (se stateMachine) prev() Status {
-	return se.prevStatus
+func (sm stateMachine) prev() Status {
+	return sm.prevStatus
 }
