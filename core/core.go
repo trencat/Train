@@ -4,11 +4,11 @@ package core
 
 import (
 	"fmt"
-	"log/syslog"
 	"math"
 	"time"
 
 	"github.com/pkg/errors"
+	log "github.com/trencat/goutils/syslog"
 )
 
 const gravity float64 = 9.80665
@@ -24,7 +24,6 @@ type Core struct {
 	sensors                Sensors
 	UpdateSensors          UpdateCoreSensorsA
 	EmergencyBrakeSetpoint EmergencyBrakeSetpoint
-	log                    *syslog.Writer
 }
 
 // Track specifications. Implements interfaces.Track
@@ -99,14 +98,7 @@ func emergencyBrakeSetpoint() Setpoint {
 }
 
 // New initialises a Core instance.
-func New(train Train, track []Track, sensors Sensors, log *syslog.Writer) (Core, error) {
-	if log == nil {
-		// Panic?
-		err := errors.New("Attempt to declare a new Core. Log not provided (nil)")
-		fmt.Printf("%+v", err)
-		return Core{}, err
-	}
-
+func New(train Train, track []Track, sensors Sensors) (Core, error) {
 	log.Info("New Core initialised")
 	return Core{
 		train:                  train,
@@ -114,21 +106,21 @@ func New(train Train, track []Track, sensors Sensors, log *syslog.Writer) (Core,
 		sensors:                sensors,
 		UpdateSensors:          updateSensorsAcceleration,
 		EmergencyBrakeSetpoint: emergencyBrakeSetpoint,
-		log:                    log,
 	}, nil
+
 }
 
 // Track returns Track specifications by its ID.
 func (c *Core) Track(index int) (Track, error) {
 	if c.tracks == nil {
 		err := errors.New("Attempt to GetTrack. Core.tracks is (nil)")
-		c.log.Warning(fmt.Sprintf("%+v", err))
+		log.Warning(fmt.Sprintf("%+v", err))
 		return Track{}, err
 	}
 
 	if index >= len(c.tracks) || index < 0 {
 		err := errors.Errorf("Attempt to GetTrack. Position %d out of bounds", index)
-		c.log.Warning(fmt.Sprintf("%+v", err))
+		log.Warning(fmt.Sprintf("%+v", err))
 		return Track{}, err
 	}
 
@@ -190,18 +182,18 @@ func updateSensorsAcceleration(c *Core, sp Setpoint,
 	// Velocity
 	new.Velocity = math.Max(0.0, prev.Velocity+deltaSec*prev.Acceleration)
 	if new.Velocity > c.train.MaxVelocity {
-		c.log.Warning(fmt.Sprintf("Current velocity %fm/s exceeds maximum train velocity %fm/s.", new.Velocity, train.MaxVelocity))
+		log.Warning(fmt.Sprintf("Current velocity %fm/s exceeds maximum train velocity %fm/s.", new.Velocity, train.MaxVelocity))
 		err := warnings.Append(OutOfBounds{Type: VelocityError, Max: c.train.MaxVelocity, Value: new.Velocity})
 		if err != nil {
-			c.log.Warning(fmt.Sprintf("%+v", err))
+			log.Warning(fmt.Sprintf("%+v", err))
 			return Sensors{}, err
 		}
 	}
 	if new.Velocity > track.MaxVelocity {
-		c.log.Warning(fmt.Sprintf("Current velocity %fm/s exceeds maximum track velocity %fm/s.", new.Velocity, track.MaxVelocity))
+		log.Warning(fmt.Sprintf("Current velocity %fm/s exceeds maximum track velocity %fm/s.", new.Velocity, track.MaxVelocity))
 		err = warnings.Append(OutOfBounds{Type: VelocityError, Max: track.MaxVelocity, Value: new.Velocity})
 		if err != nil {
-			c.log.Warning(fmt.Sprintf("%+v", err))
+			log.Warning(fmt.Sprintf("%+v", err))
 			return Sensors{}, err
 		}
 	}
@@ -260,10 +252,10 @@ func updateSensorsAcceleration(c *Core, sp Setpoint,
 	maxDeceleration := ((-1)*train.MaxBrake - new.Resistance) / (new.Mass * train.MassFactor)
 	setpoint := sp.Value
 	if setpoint > 0.0 && setpoint > maxAcceleration {
-		c.log.Warning(fmt.Sprintf("Acceleration setpoint %fm/s2 exceeds maximum acceleration %fm/s2. Correction required.", setpoint, maxAcceleration))
+		log.Warning(fmt.Sprintf("Acceleration setpoint %fm/s2 exceeds maximum acceleration %fm/s2. Correction required.", setpoint, maxAcceleration))
 		err := warnings.Append(OutOfBounds{Type: AccelerationError, Min: maxDeceleration, Max: maxAcceleration, Value: setpoint})
 		if err != nil {
-			c.log.Warning(fmt.Sprintf("%+v", err))
+			log.Warning(fmt.Sprintf("%+v", err))
 			return Sensors{}, err
 		}
 		new.Acceleration = maxAcceleration
@@ -271,10 +263,10 @@ func updateSensorsAcceleration(c *Core, sp Setpoint,
 	} else if setpoint < 0.0 && setpoint < maxDeceleration {
 		// Case setpoint being emergency brake not considered as a warning
 		if setpoint != math.Inf(-1) {
-			c.log.Warning(fmt.Sprintf("Deceleration setpoint %fm/s2 exceeds maximum deceleration %fm/s2. Correction required.", setpoint, maxDeceleration))
+			log.Warning(fmt.Sprintf("Deceleration setpoint %fm/s2 exceeds maximum deceleration %fm/s2. Correction required.", setpoint, maxDeceleration))
 			err := warnings.Append(OutOfBounds{Type: AccelerationError, Min: maxDeceleration, Max: maxAcceleration, Value: setpoint})
 			if err != nil {
-				c.log.Warning(fmt.Sprintf("%+v", err))
+				log.Warning(fmt.Sprintf("%+v", err))
 				return Sensors{}, err
 			}
 		}
@@ -298,10 +290,10 @@ func updateSensorsAcceleration(c *Core, sp Setpoint,
 	force := new.Mass*train.MassFactor*new.Acceleration + new.Resistance
 	if force >= 0 {
 		if force > train.MaxTraction {
-			c.log.Warning(fmt.Sprintf("Traction force %fN exceeds maximum traction force %fN. Correction required.", force, train.MaxTraction))
+			log.Warning(fmt.Sprintf("Traction force %fN exceeds maximum traction force %fN. Correction required.", force, train.MaxTraction))
 			err := warnings.Append(OutOfBounds{Type: ForceError, Max: train.MaxTraction, Value: force})
 			if err != nil {
-				c.log.Warning(fmt.Sprintf("%+v", err))
+				log.Warning(fmt.Sprintf("%+v", err))
 				return Sensors{}, err
 			}
 			force = train.MaxTraction
@@ -313,10 +305,10 @@ func updateSensorsAcceleration(c *Core, sp Setpoint,
 
 	} else {
 		if -force > train.MaxBrake {
-			c.log.Warning(fmt.Sprintf("Braking force %fN exceeds maximum braking force %fN. Correction required.", -force, train.MaxBrake))
+			log.Warning(fmt.Sprintf("Braking force %fN exceeds maximum braking force %fN. Correction required.", -force, train.MaxBrake))
 			err := warnings.Append(OutOfBounds{Type: ForceError, Max: train.MaxBrake, Value: -force})
 			if err != nil {
-				c.log.Warning(fmt.Sprintf("%+v", err))
+				log.Warning(fmt.Sprintf("%+v", err))
 				return Sensors{}, err
 			}
 			force = train.MaxBrake

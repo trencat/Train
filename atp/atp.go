@@ -36,11 +36,11 @@ package atp
 
 import (
 	"fmt"
-	"log/syslog"
 	"sync"
 	"time"
 
 	"github.com/pkg/errors"
+	log "github.com/trencat/goutils/syslog"
 	"github.com/trencat/train/core"
 )
 
@@ -66,7 +66,6 @@ type Atp struct {
 	start     chan struct{}
 	stop      chan struct{}
 	kill      chan struct{}
-	log       *syslog.Writer
 }
 
 func (atp *Atp) activeRoutine() {
@@ -100,19 +99,19 @@ func (atp *Atp) alarmRoutine() {
 // Kill finishes atp abruptly, no matter what's its state.
 // Use this method wisely.
 func (atp *Atp) Kill() {
-	atp.log.Warning("Kill() method called.")
+	log.Warning("Kill() method called.")
 	close(atp.kill)
 }
 
 // New initialises an Atp instance.
-func New(train core.Train, tracks []core.Track, sensors core.Sensors, log *syslog.Writer) (*Atp, error) {
+func New(train core.Train, tracks []core.Track, sensors core.Sensors) (*Atp, error) {
 	// TODO: Validate train, validate track, validate sensors
-	co, err := core.New(train, tracks, sensors, log)
+	co, err := core.New(train, tracks, sensors)
 	if err != nil {
 		return &Atp{}, err
 	}
 
-	state, err := newStateMachine(log)
+	state, err := newStateMachine()
 	if err != nil {
 		return &Atp{}, err
 	}
@@ -123,7 +122,6 @@ func New(train core.Train, tracks []core.Track, sensors core.Sensors, log *syslo
 		start: make(chan struct{}),
 		stop:  make(chan struct{}),
 		kill:  make(chan struct{}),
-		log:   log,
 	}
 	atp.state.set(On)
 
@@ -282,7 +280,7 @@ func (atp *Atp) Start() error {
 	if atp.cache.setpointUpdate.IsZero() {
 		atp.cache.spLock.Unlock()
 		err := errors.New("Calling Start without setting Setpoint first")
-		atp.log.Warning(fmt.Sprintf("%+v", err))
+		log.Warning(fmt.Sprintf("%+v", err))
 		return err
 	}
 	atp.cache.spLock.Unlock()

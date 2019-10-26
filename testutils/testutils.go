@@ -4,14 +4,12 @@ package testutils
 import (
 	"encoding/json"
 	"io/ioutil"
-	"log/syslog"
 	"os"
 	"path/filepath"
 	"testing"
 	"time"
 
 	"github.com/trencat/train/atp"
-
 	"github.com/trencat/train/core"
 )
 
@@ -74,13 +72,13 @@ func init() {
 
 // NewAtp returns an atp.Atp instance with train, tracks and
 // initial conditions set.
-func NewAtp(scenario Scenario, log *syslog.Writer, t *testing.T) *atp.Atp {
+func NewAtp(scenario Scenario, t *testing.T) *atp.Atp {
 	t.Helper()
 
 	train := GetTrain(scenario.Train, t)
 	track := GetTrack(scenario.Track, t)
 
-	Atp, err := atp.New(train, track, scenario.Sensors, log)
+	Atp, err := atp.New(train, track, scenario.Sensors)
 	if err != nil {
 		t.Fatalf("Cannot build atp. %+v", err)
 	}
@@ -90,13 +88,13 @@ func NewAtp(scenario Scenario, log *syslog.Writer, t *testing.T) *atp.Atp {
 
 // NewCore returns a core.Core instance with train, tracks and
 // initial conditions set.
-func NewCore(scenario Scenario, log *syslog.Writer, t *testing.T) *core.Core {
+func NewCore(scenario Scenario, t *testing.T) *core.Core {
 	t.Helper()
 
 	train := GetTrain(scenario.Train, t)
 	track := GetTrack(scenario.Track, t)
 
-	co, err := core.New(train, track, scenario.Sensors, log)
+	co, err := core.New(train, track, scenario.Sensors)
 	if err != nil {
 		t.Fatalf("Cannot build core. %+v", err)
 	}
@@ -217,10 +215,10 @@ func GetUpdateSensorsAs(t *testing.T) UpdateSensorsAs {
 // Position, Velocity, Acceleration, Time, RelPosition
 // Trackindex and Setpoint. Values for NumPassengers are optional.
 // This method is useful to compute testdata.
-func ComputeSensors(scenario Scenario, log *syslog.Writer, t *testing.T) core.Sensors {
+func ComputeSensors(scenario Scenario, t *testing.T) core.Sensors {
 	t.Helper()
 
-	co := NewCore(scenario, log, t)
+	co := NewCore(scenario, t)
 	sensors, err := co.UpdateSensors(co, scenario.Sensors.Setpoint, 0, 0)
 	if err != nil {
 		t.Fatalf("%+v", err)

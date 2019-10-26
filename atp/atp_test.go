@@ -7,13 +7,12 @@ import (
 	"testing"
 	"time"
 
+	log "github.com/trencat/goutils/syslog"
 	"github.com/trencat/train/atp"
 	"github.com/trencat/train/core"
-
 	"github.com/trencat/train/testutils"
 )
 
-var log *syslog.Writer
 var refreshRate time.Duration     // TODO: Remove from here and read from environ variable
 var setpointTimeout time.Duration // TODO: Remove from here and read from environ variable
 var warningTimeout time.Duration  // TODO: Remove from here and read from environ variable
@@ -26,14 +25,12 @@ func TestMain(m *testing.M) {
 	warningTimeout = time.Duration(7) * time.Second
 
 	// Setup
-	syslog, error := syslog.Dial("tcp", "localhost:514",
+	err := log.SetLogger("tcp", "localhost", "514",
 		syslog.LOG_WARNING|syslog.LOG_LOCAL0, "atpTest")
 
-	if error != nil {
-		panic(fmt.Sprintf("%s", error))
+	if err != nil {
+		panic(fmt.Sprintf("%s", err))
 	}
-
-	log = syslog
 
 	//Teardown
 	os.Exit(m.Run())
@@ -44,7 +41,7 @@ func TestMain(m *testing.M) {
 func TestOn(t *testing.T) {
 	alias := "stationary_flat"
 	scenario := testutils.GetScenario(alias, t)
-	Atp := testutils.NewAtp(scenario, log, t)
+	Atp := testutils.NewAtp(scenario, t)
 
 	Atp.Stop()
 	time.Sleep(refreshRate)
@@ -60,7 +57,7 @@ func TestOn(t *testing.T) {
 func TestStartError(t *testing.T) {
 	alias := "stationary_flat"
 	scenario := testutils.GetScenario(alias, t)
-	Atp := testutils.NewAtp(scenario, log, t)
+	Atp := testutils.NewAtp(scenario, t)
 	defer Atp.Kill()
 
 	if err := Atp.Start(); err == nil {
@@ -72,7 +69,7 @@ func TestStartError(t *testing.T) {
 func TestActive(t *testing.T) {
 	alias := "stationary_flat"
 	scenario := testutils.GetScenario(alias, t)
-	Atp := testutils.NewAtp(scenario, log, t)
+	Atp := testutils.NewAtp(scenario, t)
 	defer Atp.Kill()
 
 	Atp.Set(scenario.Sensors.Setpoint)
@@ -89,7 +86,7 @@ func TestActive(t *testing.T) {
 func TestActiveMovement(t *testing.T) {
 	alias := "stationary_flat"
 	scenario := testutils.GetScenario(alias, t)
-	Atp := testutils.NewAtp(scenario, log, t)
+	Atp := testutils.NewAtp(scenario, t)
 	defer Atp.Kill()
 
 	before := Atp.Sensors()
@@ -112,7 +109,7 @@ func TestActiveMovement(t *testing.T) {
 func TestActiveMovementStop(t *testing.T) {
 	alias := "moving_flat"
 	scenario := testutils.GetScenario(alias, t)
-	Atp := testutils.NewAtp(scenario, log, t)
+	Atp := testutils.NewAtp(scenario, t)
 	defer Atp.Kill()
 
 	Atp.Set(scenario.Sensors.Setpoint)
@@ -131,7 +128,7 @@ func TestActiveMovementStop(t *testing.T) {
 func TestActiveStop(t *testing.T) {
 	alias := "stationary_flat"
 	scenario := testutils.GetScenario(alias, t)
-	Atp := testutils.NewAtp(scenario, log, t)
+	Atp := testutils.NewAtp(scenario, t)
 	defer Atp.Kill()
 
 	Atp.Set(scenario.Sensors.Setpoint)
@@ -152,7 +149,7 @@ func TestActiveStop(t *testing.T) {
 func TestActiveVelocityOverrun(t *testing.T) {
 	alias := "velocity_limit"
 	scenario := testutils.GetScenario(alias, t)
-	Atp := testutils.NewAtp(scenario, log, t)
+	Atp := testutils.NewAtp(scenario, t)
 	defer Atp.Kill()
 
 	Atp.Set(core.Setpoint{Value: 0.15, Time: time.Now()})
@@ -178,7 +175,7 @@ func TestActiveVelocityOverrun(t *testing.T) {
 func TestActiveAccelerationOOB(t *testing.T) {
 	alias := "stationary_ascend"
 	scenario := testutils.GetScenario(alias, t)
-	Atp := testutils.NewAtp(scenario, log, t)
+	Atp := testutils.NewAtp(scenario, t)
 	defer Atp.Kill()
 
 	Atp.Set(core.Setpoint{Value: 10, Time: time.Now()})
@@ -196,7 +193,7 @@ func TestActiveAccelerationOOB(t *testing.T) {
 func TestSetpointTimeout(t *testing.T) {
 	alias := "velocity_limit"
 	scenario := testutils.GetScenario(alias, t)
-	Atp := testutils.NewAtp(scenario, log, t)
+	Atp := testutils.NewAtp(scenario, t)
 	defer Atp.Kill()
 
 	Atp.Set(core.Setpoint{Value: 0, Time: time.Now()})
@@ -214,7 +211,7 @@ func TestSetpointTimeout(t *testing.T) {
 func TestWarningAlarm(t *testing.T) {
 	alias := "velocity_limit"
 	scenario := testutils.GetScenario(alias, t)
-	Atp := testutils.NewAtp(scenario, log, t)
+	Atp := testutils.NewAtp(scenario, t)
 	defer Atp.Kill()
 
 	Atp.Set(core.Setpoint{Value: 0.1, Time: time.Now()})
@@ -232,7 +229,7 @@ func TestWarningAlarm(t *testing.T) {
 func TestAlarm(t *testing.T) {
 	alias := "velocity_limit_alarm"
 	scenario := testutils.GetScenario(alias, t)
-	Atp := testutils.NewAtp(scenario, log, t)
+	Atp := testutils.NewAtp(scenario, t)
 	defer Atp.Kill()
 
 	Atp.Set(scenario.Sensors.Setpoint)

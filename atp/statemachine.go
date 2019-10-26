@@ -2,9 +2,9 @@ package atp
 
 import (
 	"fmt"
-	"log/syslog"
 
 	"github.com/pkg/errors"
+	log "github.com/trencat/goutils/syslog"
 )
 
 // Status represents a state machine status
@@ -25,22 +25,14 @@ const (
 type stateMachine struct {
 	status     Status
 	prevStatus Status
-	log        *syslog.Writer
 }
 
 // newState declares and initialises a state instance.
-func newStateMachine(log *syslog.Writer) (stateMachine, error) {
-	if log == nil {
-		err := errors.New("Attempt to declare a new state machine. Log not provided (nil)")
-		fmt.Printf("%+v", err)
-		return stateMachine{}, err
-	}
-
+func newStateMachine() (stateMachine, error) {
 	log.Info("New state machine initialised")
 	return stateMachine{
 		status:     On,
 		prevStatus: Init,
-		log:        log,
 	}, nil
 }
 
@@ -68,13 +60,13 @@ func (sm *stateMachine) set(to Status) error {
 
 	if !sm.canSet(to) {
 		err := errors.Errorf("Attempt to set status to %d from status %d.", to, from)
-		sm.log.Warning(fmt.Sprintf("%+v", err))
+		log.Warning(fmt.Sprintf("%+v", err))
 		return err
 	}
 
 	sm.prevStatus = sm.status
 	sm.status = to
-	sm.log.Info(fmt.Sprintf("Status set to %d", to))
+	log.Info(fmt.Sprintf("Status set to %d", to))
 	return nil
 }
 

@@ -9,27 +9,25 @@ import (
 	"testing"
 
 	"github.com/google/go-cmp/cmp"
+	log "github.com/trencat/goutils/syslog"
 	"github.com/trencat/train/testutils"
 )
 
 // Test configuration
 var flagUpdate bool
-var log *syslog.Writer
 
 func TestMain(m *testing.M) {
 	// Parse arguments
 	flag.BoolVar(&flagUpdate, "update", false, "Update golden file tests.")
 	flag.Parse()
 
-	// Setup
-	syslog, error := syslog.Dial("tcp", "localhost:514",
+	// Setup)
+	err := log.SetLogger("tcp", "localhost", "514",
 		syslog.LOG_WARNING|syslog.LOG_LOCAL0, "coreTest")
 
-	if error != nil {
-		panic(fmt.Sprintf("%s", error))
+	if err != nil {
+		panic(fmt.Sprintf("%s", err))
 	}
-
-	log = syslog
 
 	//Teardown
 	os.Exit(m.Run())
@@ -43,7 +41,7 @@ func TestUpdateSensorsAcceleration(t *testing.T) {
 	for alias, test := range testdata {
 		//Read scenario
 		scenario := testutils.GetScenario(test.Scenario, t)
-		co := testutils.NewCore(scenario, log, t)
+		co := testutils.NewCore(scenario, t)
 
 		newSensor, err := co.UpdateSensors(co, test.Setpoint, test.Duration, 0)
 		if err != nil {
@@ -78,7 +76,7 @@ func TestUpdateScenarios(t *testing.T) {
 
 	for alias, scenario := range testdata {
 		//Read scenario
-		sensors := testutils.ComputeSensors(scenario, log, t)
+		sensors := testutils.ComputeSensors(scenario, t)
 
 		data, err := json.Marshal(sensors)
 		if err != nil {
