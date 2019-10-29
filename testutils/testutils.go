@@ -7,7 +7,6 @@ import (
 	"os"
 	"path/filepath"
 	"testing"
-	"time"
 
 	"github.com/trencat/train/atp"
 	"github.com/trencat/train/core"
@@ -19,8 +18,8 @@ var ScenariosPath string
 // TrainsPath is the path of testdata/trains.json
 var TrainsPath string
 
-// TracksPath is the path of testdata/tracks.json
-var TracksPath string
+// RoutesPath is the path of testdata/routes.json
+var RoutesPath string
 
 // UpdateSensorsAPath is the path of
 // testdata/updateSensorsAcceleration.json
@@ -29,12 +28,12 @@ var UpdateSensorsAPath string
 // Trains represents data in testdata/trains.json
 type Trains map[string]core.Train
 
-// Tracks represents data in testdata/tracks.json
-type Tracks map[string][]core.Track
+// Routes represents data in testdata/routes.json
+type Routes map[string][]core.Track
 
 type Scenario struct {
 	Train   string
-	Track   string
+	Route   string
 	Sensors core.Sensors
 }
 
@@ -44,7 +43,6 @@ type Scenarios map[string]Scenario
 type UpdateSensorsA struct {
 	Scenario string
 	Setpoint core.Setpoint
-	Duration time.Duration
 	Expected core.Sensors
 }
 
@@ -65,20 +63,20 @@ func init() {
 		"train", "testutils", "testdata")
 	ScenariosPath = filepath.Join(testdataDir, "scenarios.json")
 	TrainsPath = filepath.Join(testdataDir, "trains.json")
-	TracksPath = filepath.Join(testdataDir, "tracks.json")
+	RoutesPath = filepath.Join(testdataDir, "routes.json")
 	UpdateSensorsAPath = filepath.Join(
 		testdataDir, "updateSensorsAcceleration.json")
 }
 
-// NewAtp returns an atp.Atp instance with train, tracks and
+// NewAtp returns an atp.Atp instance with train, route and
 // initial conditions set.
 func NewAtp(scenario Scenario, t *testing.T) *atp.Atp {
 	t.Helper()
 
 	train := GetTrain(scenario.Train, t)
-	track := GetTrack(scenario.Track, t)
+	route := GetRoute(scenario.Route, t)
 
-	Atp, err := atp.New(train, track, scenario.Sensors)
+	Atp, err := atp.New(train, route, scenario.Sensors)
 	if err != nil {
 		t.Fatalf("Cannot build atp. %+v", err)
 	}
@@ -86,15 +84,15 @@ func NewAtp(scenario Scenario, t *testing.T) *atp.Atp {
 	return Atp
 }
 
-// NewCore returns a core.Core instance with train, tracks and
+// NewCore returns a core.Core instance with train, route and
 // initial conditions set.
 func NewCore(scenario Scenario, t *testing.T) *core.Core {
 	t.Helper()
 
 	train := GetTrain(scenario.Train, t)
-	track := GetTrack(scenario.Track, t)
+	route := GetRoute(scenario.Route, t)
 
-	co, err := core.New(train, track, scenario.Sensors)
+	co, err := core.New(train, route, scenario.Sensors)
 	if err != nil {
 		t.Fatalf("Cannot build core. %+v", err)
 	}
@@ -157,25 +155,25 @@ func GetTrains(t *testing.T) Trains {
 	return testdata
 }
 
-// GetTrack returns a track list by its alias from testdata/tracks.json
-func GetTrack(alias string, t *testing.T) []core.Track {
+// GetRoute returns a route by its alias from testdata/routes.json
+func GetRoute(alias string, t *testing.T) []core.Track {
 	t.Helper()
 
-	testdata := GetTracks(t)
-	tracks, exists := testdata[alias]
+	testdata := GetRoutes(t)
+	route, exists := testdata[alias]
 	if !exists {
-		t.Fatalf("Track %s does not exist", alias)
+		t.Fatalf("Route %s does not exist", alias)
 	}
 
-	return tracks
+	return route
 }
 
-// GetTracks returns all tracks from testdata/tracks.json
-func GetTracks(t *testing.T) Tracks {
+// GetRoutes returns all routes from testdata/routes.json
+func GetRoutes(t *testing.T) Routes {
 	t.Helper()
 
-	testdata := make(Tracks)
-	UnmarshalFromFile(TracksPath, &testdata, t)
+	testdata := make(Routes)
+	UnmarshalFromFile(RoutesPath, &testdata, t)
 	return testdata
 }
 
@@ -213,13 +211,13 @@ func GetUpdateSensorsAs(t *testing.T) UpdateSensorsAs {
 
 // ComputeSensors computes all sensors values given only
 // Position, Velocity, Acceleration, Time, RelPosition
-// Trackindex and Setpoint. Values for NumPassengers are optional.
+// and Setpoint. Values for NumPassengers are optional.
 // This method is useful to compute testdata.
 func ComputeSensors(scenario Scenario, t *testing.T) core.Sensors {
 	t.Helper()
 
 	co := NewCore(scenario, t)
-	sensors, err := co.UpdateSensors(co, scenario.Sensors.Setpoint, 0, 0)
+	sensors, err := co.UpdateSensors(scenario.Sensors.Setpoint, scenario.Sensors.Time)
 	if err != nil {
 		t.Fatalf("%+v", err)
 	}

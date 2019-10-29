@@ -7,37 +7,39 @@ import (
 	log "github.com/trencat/goutils/syslog"
 )
 
-// Status represents a state machine status
-type Status int8
+// State represents a state machine state
+type State int8
 
+// ATP state machine constants
 const (
-	Init     Status = 0 // For internal use only
-	On       Status = 10
-	Active   Status = 20
-	Warning  Status = 30
-	Alarm    Status = 40
-	Panic    Status = 50
-	Shutdown Status = 60
-	Off      Status = 70
+	Init     State = 0 // For internal use only
+	On       State = 10
+	Active   State = 20
+	Warning  State = 30
+	Alarm    State = 40
+	Panic    State = 50
+	Shutdown State = 60
+	Off      State = 70
 )
 
 // statemachine is not safe! Locks must be implemented somewhere else
 type stateMachine struct {
-	status     Status
-	prevStatus Status
+	state     State
+	prevState State
 }
 
 // newState declares and initialises a state instance.
 func newStateMachine() (stateMachine, error) {
 	log.Info("New state machine initialised")
+	log.Info(fmt.Sprintf("State set to %d", On))
 	return stateMachine{
-		status:     On,
-		prevStatus: Init,
+		state:     On,
+		prevState: Init,
 	}, nil
 }
 
-func (sm *stateMachine) canSet(to Status) bool {
-	from := sm.status
+func (sm *stateMachine) canSet(to State) bool {
+	from := sm.state
 
 	return (from == to) ||
 		(from == On && to == Active) ||
@@ -46,34 +48,35 @@ func (sm *stateMachine) canSet(to Status) bool {
 		(from == Active && to == Warning) ||
 		(from == Warning && to == Active) ||
 		(to == Alarm) ||
+		(to == Panic) ||
 		(to == Shutdown) ||
 		(from == Alarm && to == On) ||
-		(from == Shutdown && to == Off)
+		(to == Off)
 }
 
-func (sm *stateMachine) set(to Status) error {
-	from := sm.status
+func (sm *stateMachine) set(to State) error {
+	from := sm.state
 
 	if from == to {
 		return nil
 	}
 
 	if !sm.canSet(to) {
-		err := errors.Errorf("Attempt to set status to %d from status %d.", to, from)
+		err := errors.Errorf("Attempt to set state to %d from state %d.", to, from)
 		log.Warning(fmt.Sprintf("%+v", err))
 		return err
 	}
 
-	sm.prevStatus = sm.status
-	sm.status = to
-	log.Info(fmt.Sprintf("Status set to %d", to))
+	sm.prevState = sm.state
+	sm.state = to
+	log.Info(fmt.Sprintf("State set to %d", to))
 	return nil
 }
 
-func (sm stateMachine) get() Status {
-	return sm.status
+func (sm stateMachine) get() State {
+	return sm.state
 }
 
-func (sm stateMachine) prev() Status {
-	return sm.prevStatus
+func (sm stateMachine) prev() State {
+	return sm.prevState
 }

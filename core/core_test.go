@@ -21,7 +21,7 @@ func TestMain(m *testing.M) {
 	flag.BoolVar(&flagUpdate, "update", false, "Update golden file tests.")
 	flag.Parse()
 
-	// Setup)
+	// Setup
 	err := log.SetLogger("tcp", "localhost", "514",
 		syslog.LOG_WARNING|syslog.LOG_LOCAL0, "coreTest")
 
@@ -43,7 +43,7 @@ func TestUpdateSensorsAcceleration(t *testing.T) {
 		scenario := testutils.GetScenario(test.Scenario, t)
 		co := testutils.NewCore(scenario, t)
 
-		newSensor, err := co.UpdateSensors(co, test.Setpoint, test.Duration, 0)
+		newSensor, err := co.UpdateSensorsAcceleration(test.Setpoint, test.Expected.Time)
 		if err != nil {
 			t.Errorf("With scenario %s, Got error %s, Expected nil", alias, err)
 			continue

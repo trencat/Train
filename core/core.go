@@ -13,22 +13,20 @@ import (
 
 const gravity float64 = 9.80665
 
-// EmergencyBrakeSetpoint returns the setpoint that activates emergency brakes.
-type EmergencyBrakeSetpoint func() Setpoint
-
 // Core collects essential information for train automation and
 // implements train movement. Implements interfaces.Core.
 type Core struct {
-	train                  Train
-	tracks                 []Track
-	sensors                Sensors
-	UpdateSensors          UpdateCoreSensorsA
-	EmergencyBrakeSetpoint EmergencyBrakeSetpoint
+	train   Train
+	tracks  map[int]Track
+	route   []int
+	sensors Sensors
 }
 
 // Track specifications. Implements interfaces.Track
 type Track struct {
 	ID          int
+	NextID      int
+	PrevID      int
 	Length      float64
 	MaxVelocity float64
 	Slope       float64
@@ -49,6 +47,11 @@ type Train struct {
 	ResistanceQua float64
 }
 
+type Setpoint struct {
+	Value float64
+	Time  time.Time
+}
+
 // Sensors contains dynamic data collected by train's sensors.
 // All values are expressed in the International System of Units.
 type Sensors struct {
@@ -62,7 +65,6 @@ type Sensors struct {
 	TractionPower float64
 	BrakingPower  float64
 	Mass          float64
-	TrackIndex    int // Current track position in core.tracks slice
 	TrackID       int
 	RelPosition   float64 // Relative to the current track
 	Slope         float64
@@ -79,95 +81,154 @@ type Sensors struct {
 	Alarms        Warnings
 }
 
-type Setpoint struct {
-	Value float64
-	Time  time.Time
-}
-
-// UpdateCoreSensorsA updates core sensors after a given time duration.
-// setpoint parameter refers to Acceleration
-type UpdateCoreSensorsA func(c *Core, setpoint Setpoint,
-	elapsed time.Duration, setpointElapsed time.Duration) (sensors Sensors, panic error)
-
-// emergencyBrakeSetpoint returns the setpoint that activates emergency brakes.
-func emergencyBrakeSetpoint() Setpoint {
-	return Setpoint{
-		Value: math.Inf(-1),
-		Time:  time.Now(),
-	}
-}
-
 // New initialises a Core instance.
-func New(train Train, track []Track, sensors Sensors) (Core, error) {
+func New(train Train, route []Track, sensors Sensors) (Core, error) {
 	log.Info("New Core initialised")
-	return Core{
-		train:                  train,
-		tracks:                 track,
-		sensors:                sensors,
-		UpdateSensors:          updateSensorsAcceleration,
-		EmergencyBrakeSetpoint: emergencyBrakeSetpoint,
-	}, nil
+	core := Core{
+		train:   train,
+		tracks:  make(map[int]Track),
+		sensors: sensors,
+	}
 
+	if err := core.addRoute(route); err != nil {
+		return Core{}, err
+	}
+
+	return core, nil
 }
 
-// Track returns Track specifications by its ID.
-func (c *Core) Track(index int) (Track, error) {
-	if c.tracks == nil {
-		err := errors.New("Attempt to GetTrack. Core.tracks is (nil)")
+// addRoute adds new tracks to Core memory. Already existing tracks
+// will be overwritten. An error is returned if any track's prevID or nextID
+// are inconsistent. In case of error, no tracks will be added.
+func (c *Core) addRoute(route []Track) error {
+	// Validate tracks
+	for i := 0; i < len(route); i++ {
+		// Check prev track
+		if i > 0 && route[i].PrevID != route[i-1].NextID {
+			return errors.New("blabla")
+		}
+
+		// Check next track
+		if i < len(route)-1 && route[i].NextID != route[i+1].PrevID {
+			return errors.New("blabla")
+		}
+
+	}
+
+	// Add tracks
+	newRoute := make([]int, len(route))
+	for i, track := range route {
+		c.tracks[track.ID] = track
+		newRoute[i] = route[i].ID
+	}
+
+	// Set route
+	c.route = newRoute
+
+	return nil
+}
+
+// getRoute returns the Track at the given position in the route slice.
+func (c *Core) getRoute(index int) (Track, error) {
+	if index >= len(c.route) || index < 0 {
+		err := errors.Errorf("Attempt to getRoute. Position %d out of bounds", index)
 		log.Warning(fmt.Sprintf("%+v", err))
 		return Track{}, err
 	}
 
-	if index >= len(c.tracks) || index < 0 {
-		err := errors.Errorf("Attempt to GetTrack. Position %d out of bounds", index)
+	trackID := c.route[index]
+	track, exists := c.tracks[trackID]
+	if !exists {
+		err := errors.Errorf("Attempt to getRoute. At position %d, Track with ID %d does not exist", index, trackID)
 		log.Warning(fmt.Sprintf("%+v", err))
 		return Track{}, err
 	}
-
-	track := c.tracks[index]
 
 	return track, nil
 }
 
-// UpdateSensors updates real time data after a given time duration.
+// popRoute deletes the element c.route[0]. This method has no effect
+// if c.route is not set.
+func (c *Core) popRoute() {
+	if len(c.route) == 0 {
+		return
+	}
+	c.route = c.route[1:len(c.route)]
+}
+
+// Sensors return current sensors values
+func (c *Core) Sensors() Sensors {
+	return c.sensors
+}
+
+// SetRoute establishes the route that the train must follow.
+// The route is an ordered slice of Tracks, being the track at position 0
+// the train's current Track. This method overwrites the current route (if any).
+// An error is returned if route[0] trackID does not match with current
+// track that the train is running. An error is returned if any tracks' PrevID and NextID
+// are inconsistent. In case of error, the route is not set.
+func (c *Core) SetRoute(route []Track) error {
+
+	if len(c.route) > 0 {
+		currentTrack, err := c.getRoute(0)
+		if err != nil {
+			return err
+		}
+		if route[0].ID != currentTrack.ID {
+			err = errors.New("blabla")
+			//log error
+			return err
+		}
+	}
+
+	if err := c.addRoute(route); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+// UpdateSensors is a wrapper around core.UpdateSensorsAcceleration. In the future,
+// this method will choose between more than one UpdateSensors imlementations.
+func (c *Core) UpdateSensors(sp Setpoint, until time.Time) (Sensors, error) {
+	return c.UpdateSensorsAcceleration(sp, until)
+}
+
+// UpdateSensorsAcceleration updates real time data until a given time.
 // Setpoint argument refers to acceleration.
-func updateSensorsAcceleration(c *Core, sp Setpoint,
-	elapsed time.Duration, setpointElapsed time.Duration) (new Sensors, panic error) {
+func (c *Core) UpdateSensorsAcceleration(sp Setpoint, until time.Time) (Sensors, error) {
 	//TODO: Remove hardcoded constants
 	//TODO: Watch out, many log errors may happen.
 
 	prev := &c.sensors
+	new := Sensors{}
 	train := &c.train
-
-	track, err := c.Track(prev.TrackIndex)
-	if err != nil {
-		return Sensors{}, err
-	}
 
 	warnings := Warnings{}
 	alarms := Warnings{}
 
-	// TrackIndex
-	new.TrackIndex = prev.TrackIndex
+	// Track
+	track, err := c.getRoute(0)
+	if err != nil {
+		return Sensors{}, err
+	}
 
-	// Update track
+	// Update track, trackIndex
 	beginNewTrack := (prev.RelPosition > track.Length)
 	if beginNewTrack {
-		new.TrackIndex = prev.TrackIndex + 1
-		nextTrack, err := c.Track(new.TrackIndex)
+		c.popRoute()
+		track, err = c.getRoute(0)
 		if err != nil {
 			return Sensors{}, err
 		}
-
-		track = nextTrack
 	}
 
 	// TrackID
 	new.TrackID = track.ID
 
 	// Time
-	deltaSec := elapsed.Seconds()
-	new.Time = prev.Time.Add(elapsed)
+	deltaSec := until.Sub(prev.Time).Seconds()
+	new.Time = until
 
 	// Number of passengers
 	new.NumPassengers = prev.NumPassengers
@@ -182,7 +243,7 @@ func updateSensorsAcceleration(c *Core, sp Setpoint,
 	// Velocity
 	new.Velocity = math.Max(0.0, prev.Velocity+deltaSec*prev.Acceleration)
 	if new.Velocity > c.train.MaxVelocity {
-		log.Warning(fmt.Sprintf("Current velocity %fm/s exceeds maximum train velocity %fm/s.", new.Velocity, train.MaxVelocity))
+		log.Warning(fmt.Sprintf("Current velocity %fm/s exceeds maximum train velocity %fm/s", new.Velocity, train.MaxVelocity))
 		err := warnings.Append(OutOfBounds{Type: VelocityError, Max: c.train.MaxVelocity, Value: new.Velocity})
 		if err != nil {
 			log.Warning(fmt.Sprintf("%+v", err))
@@ -190,7 +251,7 @@ func updateSensorsAcceleration(c *Core, sp Setpoint,
 		}
 	}
 	if new.Velocity > track.MaxVelocity {
-		log.Warning(fmt.Sprintf("Current velocity %fm/s exceeds maximum track velocity %fm/s.", new.Velocity, track.MaxVelocity))
+		log.Warning(fmt.Sprintf("Current velocity %fm/s exceeds maximum track velocity %fm/s", new.Velocity, track.MaxVelocity))
 		err = warnings.Append(OutOfBounds{Type: VelocityError, Max: track.MaxVelocity, Value: new.Velocity})
 		if err != nil {
 			log.Warning(fmt.Sprintf("%+v", err))
@@ -252,7 +313,7 @@ func updateSensorsAcceleration(c *Core, sp Setpoint,
 	maxDeceleration := ((-1)*train.MaxBrake - new.Resistance) / (new.Mass * train.MassFactor)
 	setpoint := sp.Value
 	if setpoint > 0.0 && setpoint > maxAcceleration {
-		log.Warning(fmt.Sprintf("Acceleration setpoint %fm/s2 exceeds maximum acceleration %fm/s2. Correction required.", setpoint, maxAcceleration))
+		log.Warning(fmt.Sprintf("Acceleration setpoint %fm/s2 exceeds maximum acceleration %fm/s2. Correction required", setpoint, maxAcceleration))
 		err := warnings.Append(OutOfBounds{Type: AccelerationError, Min: maxDeceleration, Max: maxAcceleration, Value: setpoint})
 		if err != nil {
 			log.Warning(fmt.Sprintf("%+v", err))
@@ -263,7 +324,7 @@ func updateSensorsAcceleration(c *Core, sp Setpoint,
 	} else if setpoint < 0.0 && setpoint < maxDeceleration {
 		// Case setpoint being emergency brake not considered as a warning
 		if setpoint != math.Inf(-1) {
-			log.Warning(fmt.Sprintf("Deceleration setpoint %fm/s2 exceeds maximum deceleration %fm/s2. Correction required.", setpoint, maxDeceleration))
+			log.Warning(fmt.Sprintf("Deceleration setpoint %fm/s2 exceeds maximum deceleration %fm/s2. Correction required", setpoint, maxDeceleration))
 			err := warnings.Append(OutOfBounds{Type: AccelerationError, Min: maxDeceleration, Max: maxAcceleration, Value: setpoint})
 			if err != nil {
 				log.Warning(fmt.Sprintf("%+v", err))
@@ -290,7 +351,7 @@ func updateSensorsAcceleration(c *Core, sp Setpoint,
 	force := new.Mass*train.MassFactor*new.Acceleration + new.Resistance
 	if force >= 0 {
 		if force > train.MaxTraction {
-			log.Warning(fmt.Sprintf("Traction force %fN exceeds maximum traction force %fN. Correction required.", force, train.MaxTraction))
+			log.Warning(fmt.Sprintf("Traction force %fN exceeds maximum traction force %fN. Correction required", force, train.MaxTraction))
 			err := warnings.Append(OutOfBounds{Type: ForceError, Max: train.MaxTraction, Value: force})
 			if err != nil {
 				log.Warning(fmt.Sprintf("%+v", err))
@@ -305,7 +366,7 @@ func updateSensorsAcceleration(c *Core, sp Setpoint,
 
 	} else {
 		if -force > train.MaxBrake {
-			log.Warning(fmt.Sprintf("Braking force %fN exceeds maximum braking force %fN. Correction required.", -force, train.MaxBrake))
+			log.Warning(fmt.Sprintf("Braking force %fN exceeds maximum braking force %fN. Correction required", -force, train.MaxBrake))
 			err := warnings.Append(OutOfBounds{Type: ForceError, Max: train.MaxBrake, Value: -force})
 			if err != nil {
 				log.Warning(fmt.Sprintf("%+v", err))
@@ -322,6 +383,7 @@ func updateSensorsAcceleration(c *Core, sp Setpoint,
 	// Check Heartbeat
 	// TODO: Remove hardcoded duration
 	updateTimeout := time.Duration(5) * time.Second
+	setpointElapsed := until.Sub(prev.Setpoint.Time)
 	if setpointElapsed >= updateTimeout {
 		alarms.Append(Heartbeat{
 			LastTime:  sp.Time,
@@ -340,4 +402,12 @@ func updateSensorsAcceleration(c *Core, sp Setpoint,
 	c.sensors = new
 
 	return new, nil
+}
+
+// EmergencyBrakeSetpoint returns the setpoint that activates emergency brakes.
+func (c *Core) EmergencyBrakeSetpoint() Setpoint {
+	return Setpoint{
+		Value: math.Inf(-1),
+		Time:  time.Now(),
+	}
 }

@@ -37,7 +37,7 @@ func TestMain(m *testing.M) {
 }
 
 // TestOn tests train finishes execution after calling Stop() when
-// status is On.
+// state is On.
 func TestOn(t *testing.T) {
 	alias := "stationary_flat"
 	scenario := testutils.GetScenario(alias, t)
@@ -46,9 +46,9 @@ func TestOn(t *testing.T) {
 	Atp.Stop()
 	time.Sleep(refreshRate)
 
-	if status := Atp.Status(); status != atp.Off {
-		t.Errorf("With scenario %s, Got status %d, Expected %d",
-			alias, status, atp.Off)
+	if state := Atp.Sensors().State; state != atp.Off {
+		t.Errorf("With scenario %s, Got state %d, Expected %d",
+			alias, state, atp.Off)
 	}
 }
 
@@ -65,37 +65,37 @@ func TestStartError(t *testing.T) {
 	}
 }
 
-// TestActive tests status is set to Active after calling Start()
+// TestActive tests state is set to Active after calling Start()
 func TestActive(t *testing.T) {
 	alias := "stationary_flat"
 	scenario := testutils.GetScenario(alias, t)
 	Atp := testutils.NewAtp(scenario, t)
 	defer Atp.Kill()
 
-	Atp.Set(scenario.Sensors.Setpoint)
+	Atp.SetSetpoint(scenario.Sensors.Setpoint)
 	Atp.Start()
 	time.Sleep(refreshRate)
 
-	if status := Atp.Status(); status != atp.Active {
-		t.Errorf("With scenario %s, Got status %d, Expected %d",
-			alias, status, atp.Active)
+	if state := Atp.Sensors().State; state != atp.Active {
+		t.Errorf("With scenario %s, Got state %d, Expected %d",
+			alias, state, atp.Active)
 	}
 }
 
-// TestActiveMovement tests that train moves when status is Active.
+// TestActiveMovement tests that train moves when state is Active.
 func TestActiveMovement(t *testing.T) {
 	alias := "stationary_flat"
 	scenario := testutils.GetScenario(alias, t)
 	Atp := testutils.NewAtp(scenario, t)
 	defer Atp.Kill()
 
-	before := Atp.Sensors()
+	before := Atp.Sensors().Sensors
 
-	Atp.Set(core.Setpoint{Value: 0.5, Time: time.Now()})
+	Atp.SetSetpoint(core.Setpoint{Value: 0.5, Time: time.Now()})
 	Atp.Start()
 
 	time.Sleep(refreshRate)
-	after := Atp.Sensors()
+	after := Atp.Sensors().Sensors
 
 	if after.Position <= before.Position {
 		t.Errorf("With scenario %s, Got before %+v, After %+v, "+
@@ -104,7 +104,7 @@ func TestActiveMovement(t *testing.T) {
 	}
 }
 
-// TestActiveMovementStop tests status is set to Alarm when calling
+// TestActiveMovementStop tests state is set to Alarm when calling
 // atp.Stop() while the train is moving
 func TestActiveMovementStop(t *testing.T) {
 	alias := "moving_flat"
@@ -112,39 +112,39 @@ func TestActiveMovementStop(t *testing.T) {
 	Atp := testutils.NewAtp(scenario, t)
 	defer Atp.Kill()
 
-	Atp.Set(scenario.Sensors.Setpoint)
+	Atp.SetSetpoint(scenario.Sensors.Setpoint)
 	Atp.Start()
 
 	Atp.Stop()
 	time.Sleep(refreshRate)
-	if status := Atp.Status(); status != atp.Alarm {
-		t.Errorf("With scenario %s, Got status %d. Expected status %d.",
-			alias, status, atp.Alarm)
+	if state := Atp.Sensors().State; state != atp.Alarm {
+		t.Errorf("With scenario %s, Got state %d. Expected state %d.",
+			alias, state, atp.Alarm)
 	}
 }
 
 // TestActiveStop tests train finishes execution when calling Stop
-// while train has status Active and is stopped.
+// while train has state Active and is stopped.
 func TestActiveStop(t *testing.T) {
 	alias := "stationary_flat"
 	scenario := testutils.GetScenario(alias, t)
 	Atp := testutils.NewAtp(scenario, t)
 	defer Atp.Kill()
 
-	Atp.Set(scenario.Sensors.Setpoint)
+	Atp.SetSetpoint(scenario.Sensors.Setpoint)
 	Atp.Start()
 	time.Sleep(refreshRate)
 	Atp.Stop()
 	time.Sleep(refreshRate)
 
-	if status := Atp.Status(); status != atp.Off {
-		t.Errorf("With scenario %s, Got status %d, Expected %d",
-			alias, status, atp.Off)
+	if state := Atp.Sensors().State; state != atp.Off {
+		t.Errorf("With scenario %s, Got state %d, Expected %d",
+			alias, state, atp.Off)
 	}
 }
 
-// TestActiveVelocityOverrun tests status is set to Warning when
-// running more than permitted. Next it tests status is set from
+// TestActiveVelocityOverrun tests state is set to Warning when
+// running more than permitted. Next it tests state is set from
 // Warning to Active after reducing speed.
 func TestActiveVelocityOverrun(t *testing.T) {
 	alias := "velocity_limit"
@@ -152,25 +152,25 @@ func TestActiveVelocityOverrun(t *testing.T) {
 	Atp := testutils.NewAtp(scenario, t)
 	defer Atp.Kill()
 
-	Atp.Set(core.Setpoint{Value: 0.15, Time: time.Now()})
+	Atp.SetSetpoint(core.Setpoint{Value: 0.15, Time: time.Now()})
 	Atp.Start()
 	time.Sleep(refreshRate)
 
-	if status := Atp.Status(); status != atp.Warning {
-		t.Errorf("With scenario %s, Got status %d, Expected %d",
-			alias, status, atp.Warning)
+	if state := Atp.Sensors().State; state != atp.Warning {
+		t.Errorf("With scenario %s, Got state %d, Expected %d",
+			alias, state, atp.Warning)
 	}
 
-	Atp.Set(core.Setpoint{Value: -0.7, Time: time.Now()})
+	Atp.SetSetpoint(core.Setpoint{Value: -0.7, Time: time.Now()})
 	time.Sleep(2 * refreshRate)
 
-	if status := Atp.Status(); status != atp.Active {
-		t.Errorf("With scenario %s, Got status %d, Expected %d",
-			alias, status, atp.Active)
+	if state := Atp.Sensors().State; state != atp.Active {
+		t.Errorf("With scenario %s, Got state %d, Expected %d",
+			alias, state, atp.Active)
 	}
 }
 
-// TestActiveAccelerationOOB tests status is set to Warning when
+// TestActiveAccelerationOOB tests state is set to Warning when
 // acceleration setpoint is out of bounds.
 func TestActiveAccelerationOOB(t *testing.T) {
 	alias := "stationary_ascend"
@@ -178,17 +178,17 @@ func TestActiveAccelerationOOB(t *testing.T) {
 	Atp := testutils.NewAtp(scenario, t)
 	defer Atp.Kill()
 
-	Atp.Set(core.Setpoint{Value: 10, Time: time.Now()})
+	Atp.SetSetpoint(core.Setpoint{Value: 10, Time: time.Now()})
 	Atp.Start()
 	time.Sleep(refreshRate)
 
-	if status := Atp.Status(); status != atp.Warning {
-		t.Errorf("With scenario %s, Got status %d, Expected %d",
-			alias, status, atp.Warning)
+	if state := Atp.Sensors().State; state != atp.Warning {
+		t.Errorf("With scenario %s, Got state %d, Expected %d",
+			alias, state, atp.Warning)
 	}
 }
 
-// TestSetpointTimeout tests status is set to Alarm if no setpoint
+// TestSetpointTimeout tests state is set to Alarm if no setpoint
 // is sent after X seconds.
 func TestSetpointTimeout(t *testing.T) {
 	alias := "velocity_limit"
@@ -196,17 +196,17 @@ func TestSetpointTimeout(t *testing.T) {
 	Atp := testutils.NewAtp(scenario, t)
 	defer Atp.Kill()
 
-	Atp.Set(core.Setpoint{Value: 0, Time: time.Now()})
+	Atp.SetSetpoint(core.Setpoint{Value: 0, Time: time.Now()})
 	Atp.Start()
 	time.Sleep(setpointTimeout)
 
-	if status := Atp.Status(); status != atp.Alarm {
-		t.Errorf("With scenario %s, Got status %d, Expected %d",
-			alias, status, atp.Alarm)
+	if state := Atp.Sensors().State; state != atp.Alarm {
+		t.Errorf("With scenario %s, Got state %d, Expected %d",
+			alias, state, atp.Alarm)
 	}
 }
 
-// TestWarningAlarm tests status is set to Alarm if Warning state
+// TestWarningAlarm tests state is set to Alarm if Warning state
 // holds for more than X seconds
 func TestWarningAlarm(t *testing.T) {
 	alias := "velocity_limit"
@@ -214,58 +214,58 @@ func TestWarningAlarm(t *testing.T) {
 	Atp := testutils.NewAtp(scenario, t)
 	defer Atp.Kill()
 
-	Atp.Set(core.Setpoint{Value: 0.1, Time: time.Now()})
+	Atp.SetSetpoint(core.Setpoint{Value: 0.1, Time: time.Now()})
 	Atp.Start()
 	time.Sleep(warningTimeout)
 
-	if status := Atp.Status(); status != atp.Alarm {
-		t.Errorf("With scenario %s, Got status %d, Expected %d",
-			alias, status, atp.Alarm)
+	if state := Atp.Sensors().State; state != atp.Alarm {
+		t.Errorf("With scenario %s, Got state %d, Expected %d",
+			alias, state, atp.Alarm)
 	}
 }
 
 // TestAlarmSetpoints tests that setpoint is ignored if state is
-// set to Alarm, train stops completely and status changes to On.
+// set to Alarm, train stops completely and state changes to On.
 func TestAlarm(t *testing.T) {
 	alias := "velocity_limit_alarm"
 	scenario := testutils.GetScenario(alias, t)
 	Atp := testutils.NewAtp(scenario, t)
 	defer Atp.Kill()
 
-	Atp.Set(scenario.Sensors.Setpoint)
+	Atp.SetSetpoint(scenario.Sensors.Setpoint)
 	Atp.Start()
 	time.Sleep(refreshRate)
 
-	// Check status is set to Alarm
-	if status := Atp.Status(); status != atp.Alarm {
-		t.Fatalf("With scenario %s, Got status %d, Expected %d",
-			alias, status, atp.Alarm)
+	// Check state is set to Alarm
+	if state := Atp.Sensors().State; state != atp.Alarm {
+		t.Fatalf("With scenario %s, Got state %d, Expected %d",
+			alias, state, atp.Alarm)
 	}
 
 	// Wait until train stops
 	prev := Atp.Sensors()
 	for {
 		// Atp should ignore setpoint
-		Atp.Set(scenario.Sensors.Setpoint)
+		Atp.SetSetpoint(scenario.Sensors.Setpoint)
 
 		time.Sleep(refreshRate)
-		sensors := Atp.Sensors()
+		now := Atp.Sensors()
 
 		// Check that train is braking
-		if sensors.Velocity >= prev.Velocity {
-			t.Fatalf("With scenario %s, Got previus %+v, current %+v, expected train to brake",
-				alias, prev, sensors)
+		if now.Sensors.Velocity >= prev.Sensors.Velocity {
+			t.Fatalf("With scenario %s, Got previous %+v, current %+v, expected train to brake",
+				alias, prev, now)
 		}
 
-		if atp.Stopped(sensors) {
+		if atp.Stopped(now.Sensors) {
 			break
 		}
 	}
 
 	time.Sleep(refreshRate)
-	if status := Atp.Status(); status != atp.On {
-		t.Errorf("With scenario %s, Got status %d, Expected %d",
-			alias, status, atp.On)
+	if state := Atp.Sensors().State; state != atp.On {
+		t.Errorf("With scenario %s, Got state %d, Expected %d",
+			alias, state, atp.On)
 	}
 }
 

@@ -7,6 +7,7 @@ import (
 	"github.com/pkg/errors"
 )
 
+// OutOfBounds types
 const (
 	VelocityError     string = "Velocity"
 	AccelerationError string = "Acceleration"

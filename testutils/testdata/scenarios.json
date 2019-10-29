@@ -1,7 +1,7 @@
 {
     "stationary_flat": {
         "Train": "SBB Re 460 locomotive",
-        "Track": "default",
+        "Route": "default",
         "Sensors": {
             "Time": "2019-07-10T20:00:22.245281838+02:00",
             "Setpoint": {
@@ -41,7 +41,7 @@
     },
     "stationary_ascend": {
         "Train": "SBB Re 460 locomotive",
-        "Track": "slope_ascend",
+        "Route": "slope_ascend",
         "Sensors": {
             "Time": "2019-07-10T20:00:22.245281838+02:00",
             "Setpoint": {
@@ -81,7 +81,7 @@
     },
     "stationary_descend": {
         "Train": "SBB Re 460 locomotive",
-        "Track": "slope_descend",
+        "Route": "slope_descend",
         "Sensors": {
             "Time": "2019-07-10T20:00:22.245281838+02:00",
             "Setpoint": {
@@ -121,7 +121,7 @@
     },
     "moving_flat": {
         "Train": "SBB Re 460 locomotive",
-        "Track": "default",
+        "Route": "default",
         "Sensors": {
             "Time": "2019-07-10T20:00:22.245281838+02:00",
             "Setpoint": {
@@ -161,7 +161,7 @@
     },
     "velocity_limit": {
         "Train": "SBB Re 460 locomotive",
-        "Track": "flat_low_velocity",
+        "Route": "flat_low_velocity",
         "Sensors": {
             "Time": "2019-07-10T20:00:22.245281838+02:00",
             "Setpoint": {
@@ -201,7 +201,7 @@
     },
     "velocity_limit_alarm": {
         "Train": "SBB Re 460 locomotive",
-        "Track": "flat_really_low_velocity",
+        "Route": "flat_really_low_velocity",
         "Sensors": {
             "Time": "2019-07-10T20:00:22.245281838+02:00",
             "Setpoint": {

@@ -7,11 +7,6 @@ docs:
 	# Docs available at http://localhost:6060/pkg/github.com/trencat/train/
 	godoc -index -play -goroot=$(GOPATH)/src/github.com/trencat/train
 
-.PHONY: install-deps
-install-deps:
-	go get -u github.com/google/go-cmp/cmp
-	go get -u github.com/trencat/goutils/
-
 # do not use test-clean directly. Intended only as dependency
 .PHONY: test-clean
 test-clean:
