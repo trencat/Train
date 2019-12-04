@@ -25,8 +25,6 @@ type Core struct {
 // Track specifications. Implements interfaces.Track
 type Track struct {
 	ID          int
-	NextID      int
-	PrevID      int
 	Length      float64
 	MaxVelocity float64
 	Slope       float64
@@ -101,19 +99,7 @@ func New(train Train, route []Track, sensors Sensors) (Core, error) {
 // will be overwritten. An error is returned if any track's prevID or nextID
 // are inconsistent. In case of error, no tracks will be added.
 func (c *Core) addRoute(route []Track) error {
-	// Validate tracks
-	for i := 0; i < len(route); i++ {
-		// Check prev track
-		if i > 0 && route[i].PrevID != route[i-1].NextID {
-			return errors.New("blabla")
-		}
-
-		// Check next track
-		if i < len(route)-1 && route[i].NextID != route[i+1].PrevID {
-			return errors.New("blabla")
-		}
-
-	}
+	//TODO: Validate tracks
 
 	// Add tracks
 	newRoute := make([]int, len(route))

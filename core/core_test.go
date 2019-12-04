@@ -10,6 +10,7 @@ import (
 
 	"github.com/google/go-cmp/cmp"
 	log "github.com/trencat/goutils/syslog"
+	"github.com/trencat/train/core"
 	"github.com/trencat/train/testutils"
 )
 
@@ -31,6 +32,17 @@ func TestMain(m *testing.M) {
 
 	//Teardown
 	os.Exit(m.Run())
+}
+
+func TestSetRoute(t *testing.T) {
+	testdata := testutils.GetRoutes(t)
+
+	for alias, route := range testdata {
+		//Read scenario
+		if _, err := core.New(core.Train{}, route, core.Sensors{}); err != nil {
+			t.Errorf("With route %s, Got error %s, Expected nil", alias, err)
+		}
+	}
 }
 
 // TestUpdateSensorsAcceleration tests UpdateSensors implementation
