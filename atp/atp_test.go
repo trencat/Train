@@ -270,7 +270,31 @@ func TestAlarm(t *testing.T) {
 }
 
 // TestPanicOutOfRails tests that train panics when running out of
-// rails.
+// rails and finally sets the state to Off
 func TestPanicOutOfRails(t *testing.T) {
 	// TODO
+}
+
+// TestStopDoesNotPanic tests that Kill method can be called safely
+// multiple times.
+func TestStopDoesNotPanic(t *testing.T) {
+	alias := "stationary_flat"
+	scenario := testutils.GetScenario(alias, t)
+	Atp := testutils.NewAtp(scenario, t)
+
+	for i := 0; i < 100; i++ {
+		Atp.Stop()
+	}
+}
+
+// TestKillDoesNotPanic tests that Kill method can be called safely
+// multiple times.
+func TestKillDoesNotPanic(t *testing.T) {
+	alias := "stationary_flat"
+	scenario := testutils.GetScenario(alias, t)
+	Atp := testutils.NewAtp(scenario, t)
+
+	for i := 0; i < 100; i++ {
+		Atp.Kill()
+	}
 }

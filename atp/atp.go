@@ -28,9 +28,8 @@
 // Off: Indicate train finished execution gracefully.
 //
 // Panic: Unrecoverable error. Train just explodes (Better not to be inside!).
-// Execution calls panic and the train stops working. Examples of panic
-// are not being able to read train/tracks/sensors information, or running
-// out of tracks.
+// Automatically sets state to Off. Examples of panic are not being able to read
+// train/tracks/sensors information, or running out of tracks.
 package atp
 
 import (
@@ -201,6 +200,9 @@ loop:
 				atp.state.set(Off)
 				continue
 			}
+		case Panic:
+			atp.panicRoutine()
+			continue
 		case Off:
 			atp.offRoutine()
 			break loop
@@ -271,7 +273,6 @@ func (atp *Atp) onRoutine() {
 	sensors, err := atp.updateSensors()
 	if err != nil {
 		atp.state.set(Panic)
-		panic(fmt.Sprintf("%+v", err))
 	}
 
 	if sensors.Warnings.Any() {
@@ -328,7 +329,6 @@ func (atp *Atp) alarmRoutine() {
 	sensors, err := atp.updateSensors()
 	if err != nil {
 		atp.state.set(Panic)
-		panic(fmt.Sprintf("%+v", err))
 	}
 
 	if !Stopped(sensors) {
@@ -342,7 +342,6 @@ func (atp *Atp) shutdownRoutine() bool {
 	sensors, err := atp.updateSensors()
 	if err != nil {
 		atp.state.set(Panic)
-		panic(fmt.Sprintf("%+v", err))
 	}
 
 	if !Stopped(sensors) {
@@ -356,28 +355,33 @@ func (atp *Atp) shutdownRoutine() bool {
 	return true
 }
 
+func (atp *Atp) panicRoutine() {
+	atp.state.set(Off)
+}
+
 func (atp *Atp) offRoutine() {
 	close(atp.api.notifyOff)
-	close(atp.api.start)
-	close(atp.api.stop)
-	close(atp.api.kill)
-	close(atp.api.setSetpoint)
-	close(atp.api.setRoute)
-	close(atp.api.getSensors)
 
 	// Empty api channels
-	for range atp.api.start {
-	}
-	for range atp.api.stop {
-	}
-	for range atp.api.kill {
-	}
-	for range atp.api.setSetpoint {
-	}
-	for range atp.api.setRoute {
-	}
-	for ch := range atp.api.getSensors {
-		ch <- atp.getSensors()
+loop:
+	for {
+		select {
+		case <-atp.api.start:
+		case <-atp.api.stop:
+		case <-atp.api.kill:
+		case <-atp.api.setSetpoint:
+		case <-atp.api.setRoute:
+		case ch := <-atp.api.getSensors:
+			ch <- atp.getSensors()
+		default:
+			close(atp.api.start)
+			close(atp.api.stop)
+			close(atp.api.kill)
+			close(atp.api.setRoute)
+			close(atp.api.setSetpoint)
+			close(atp.api.getSensors)
+			break loop
+		}
 	}
 }
 
@@ -406,7 +410,7 @@ func (atp *Atp) startSignalRoutine() error {
 func (atp *Atp) Start() error {
 	select {
 	case <-atp.api.notifyOff:
-		// atp has finished running
+		// atp is not running
 		return nil
 	default:
 		errch := make(chan error)
@@ -423,7 +427,7 @@ func (atp *Atp) Start() error {
 func (atp *Atp) Stop() {
 	select {
 	case <-atp.api.notifyOff:
-		// atp has finished running
+		// atp is not running
 		return
 	default:
 		atp.api.stop <- struct{}{}
@@ -431,13 +435,13 @@ func (atp *Atp) Stop() {
 }
 
 // Kill finishes atp abruptly, no matter what's its state.
-// Use this method wisely. Calling this method when state
-// is Off takes no effect.
+// Calling this method when state is Off takes no effect.
+// Use this method wisely.
 func (atp *Atp) Kill() {
 	log.Warning("Kill() method called")
 	select {
 	case <-atp.api.notifyOff:
-		// atp has finished running
+		// atp is not running
 		return
 	default:
 		atp.api.kill <- struct{}{}
