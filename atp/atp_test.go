@@ -269,10 +269,27 @@ func TestAlarm(t *testing.T) {
 	}
 }
 
-// TestPanicOutOfRails tests that train panics when running out of
-// rails and finally sets the state to Off
+// TestPanicOutOfRails tests that train sets the state to Off
+// when running out of rails
 func TestPanicOutOfRails(t *testing.T) {
-	// TODO
+	alias := "stationary_flat"
+	scenario := testutils.GetScenario(alias, t)
+
+	// Place the train out of bounds
+	route := testutils.GetRoute(scenario.Route, t)
+	routeEnd := route[len(route)-1].Length
+	scenario.Sensors.Position = routeEnd + 1
+	scenario.Sensors.RelPosition = routeEnd + 1
+
+	Atp := testutils.NewAtp(scenario, t)
+	defer Atp.Kill()
+
+	time.Sleep(refreshRate)
+
+	if state := Atp.Sensors().State; state != atp.Off {
+		t.Errorf("With scenario %s, Got state %d, Expected %d",
+			alias, state, atp.Off)
+	}
 }
 
 // TestStopDoesNotPanic tests that Kill method can be called safely

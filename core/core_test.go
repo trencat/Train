@@ -45,6 +45,23 @@ func TestSetRoute(t *testing.T) {
 	}
 }
 
+func TestSetError(t *testing.T) {
+	//Read scenario
+
+	route := make([]core.Track, 1)
+	route[0] = core.Track{ID: 1, Length: 100, BendRadius: 1e5}
+
+	c, err := core.New(core.Train{}, route, core.Sensors{})
+	if err != nil {
+		t.Errorf("Got error %s, Expected nil", err)
+	}
+
+	route[0].ID = 2
+	if err = c.SetRoute(route); err == nil {
+		t.Error("Got nil error, expected non nil error")
+	}
+}
+
 // TestUpdateSensorsAcceleration tests UpdateSensors implementation
 // considering that setpoint refers to acceleration.
 func TestUpdateSensorsAcceleration(t *testing.T) {
