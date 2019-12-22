@@ -50,6 +50,7 @@ type api struct {
 	getSensors  chan chan Sensors
 	setSetpoint chan core.Setpoint
 	setRoute    chan setRouteRequest
+	trigger     chan Sensors
 }
 
 // Sensors contains core.Sensors data and ATP state
@@ -186,7 +187,8 @@ func (atp *Atp) run(notify chan struct{}) {
 loop:
 	for {
 		// Operations
-		switch atp.state.get() {
+		state := atp.state.get()
+		switch state {
 		case On:
 			atp.onRoutine()
 		case Active:
@@ -217,6 +219,10 @@ loop:
 
 		// TODO: Remove hardcoded constant
 		time.Sleep(time.Duration(200) * time.Millisecond)
+
+		// Triggers routine
+		newState := atp.state.get()
+		atp.triggerRoutine(state, newState)
 	}
 }
 
@@ -385,6 +391,24 @@ loop:
 	}
 }
 
+// triggerRoutine sends atp Sensors through channel. If channel is full,
+// signal will be dropped. This means that the received should process
+// read & process trigger data as fast as possible.
+func (atp *Atp) triggerRoutine(state State, newState State) {
+	if (newState == Warning || newState == Alarm) && state != newState {
+		if atp.api.trigger == nil {
+			// No one listening trigger channel
+			return
+		}
+
+		select {
+		case atp.api.trigger <- atp.getSensors():
+		default:
+			break
+		}
+	}
+}
+
 func (atp *Atp) startSignalRoutine() error {
 	// Check state is On and setpoint is set.
 	if atp.state.get() != On {
@@ -446,6 +470,18 @@ func (atp *Atp) Kill() {
 	default:
 		atp.api.kill <- struct{}{}
 	}
+}
+
+// ListenTriggers return a Sensors channel. Sensors are sent
+// to this channel when state changes to Warning, Alarm, .
+// Calling this method more than once returns the same channel,
+// so only one thread should listen to this channel.
+func (atp *Atp) ListenTriggers() <-chan Sensors {
+	if atp.api.trigger == nil {
+		// TODO: Remove hardcoded chan capacity. Decide capacity.
+		atp.api.trigger = make(chan Sensors, 10)
+	}
+	return atp.api.trigger
 }
 
 // Stopped returns true if the train is completely stopped.

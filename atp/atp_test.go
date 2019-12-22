@@ -315,3 +315,60 @@ func TestKillDoesNotPanic(t *testing.T) {
 		Atp.Kill()
 	}
 }
+
+// TestAlarmTrigger tests atp.Sensors are sent to trigger channel
+// when state becomes Alarm.
+func TestWarningTrigger(t *testing.T) {
+	alias := "velocity_limit"
+	scenario := testutils.GetScenario(alias, t)
+	Atp := testutils.NewAtp(scenario, t)
+	defer Atp.Kill()
+
+	Atp.SetSetpoint(core.Setpoint{Value: 0.15, Time: time.Now()})
+	ch := Atp.ListenTriggers()
+	Atp.Start()
+
+	select {
+	case sensors := <-ch:
+		if sensors.State != atp.Warning {
+			t.Errorf("With scenario %s, Got state %d. Expected state %d.",
+				alias, sensors.State, atp.Warning)
+		}
+	case <-time.After(refreshRate):
+		t.Errorf("With scenario %s, Got no trigger. Expected trigger.", alias)
+	}
+
+	Atp.SetSetpoint(core.Setpoint{Value: -0.7, Time: time.Now()})
+	time.Sleep(2 * refreshRate)
+
+	select {
+	case <-ch:
+		t.Errorf("With scenario %s, Got trigger. Expected no more triggers.", alias)
+	case <-time.After(refreshRate):
+		break
+	}
+}
+
+// TestAlarmTrigger tests atp.Sensors are sent to trigger channel
+// when state becomes Alarm.
+func TestAlarmTrigger(t *testing.T) {
+	alias := "moving_flat"
+	scenario := testutils.GetScenario(alias, t)
+	Atp := testutils.NewAtp(scenario, t)
+	defer Atp.Kill()
+
+	Atp.SetSetpoint(scenario.Sensors.Setpoint)
+	ch := Atp.ListenTriggers()
+	Atp.Start()
+
+	Atp.Stop()
+	select {
+	case sensors := <-ch:
+		if sensors.State != atp.Alarm {
+			t.Errorf("With scenario %s, Got state %d. Expected state %d.",
+				alias, sensors.State, atp.Alarm)
+		}
+	case <-time.After(refreshRate):
+		t.Errorf("With scenario %s, Got no trigger. Expected trigger.", alias)
+	}
+}
